@@ -1,32 +1,50 @@
-import { Routes, Route } from "react-router-dom";
-import { Header } from "./components/Header";
-import { SideMenu } from "./components/SideMenu";
-import { Main } from "./components/Main";
-import { Footer } from "./components/Footer";
-import Task from "./components/Task";
-import User from "./components/User";
-import Egg from "./components/Egg";
-import Sidebar from "./components/sidebar";
-import Home from "./pages/home";
-import Meat from "./pages/meat";
+import React, { useState, useEffect } from 'react'
+import Login from './components/Login'
+import MenuList from './components/MenuList'
+import Navbar from './components/Navbar'
+import CartPanel from './components/CartPanel'
 
-export default function App() {
+
+export default function App(){
+  const [user, setUser] = useState(()=>{ try { return JSON.parse(localStorage.getItem('pop_user'))||null } catch { return null }})
+  const [cart, setCart] = useState(()=>JSON.parse(localStorage.getItem('pop_cart')||'[]'))
+  const [showCart, setShowCart] = useState(false)
+
+  useEffect(()=>localStorage.setItem('pop_cart', JSON.stringify(cart)), [cart])
+
+  function addToCart(item){
+    setCart(prev=>{
+      const found = prev.find(p=>p.id===item.id)
+      if(found) return prev.map(p=>p.id===item.id? {...p, qty: p.qty+1}: p)
+      return [...prev, {...item, qty:1}]
+    })
+  }
+
+  function inc(item){ setCart(prev=>prev.map(p=>p.id===item.id? {...p, qty: p.qty+1}: p)) }
+  function dec(item){ setCart(prev=>prev.flatMap(p=> p.id===item.id? (p.qty>1? [{...p, qty: p.qty-1}]:[]) : [p])) }
+  function removeItem(item){ setCart(prev=>prev.filter(p=>p.id!==item.id)) }
+  function checkout(){ alert('สั่งซื้อเรียบร้อย'); setCart([]) }
+
+  function logout(){ localStorage.removeItem('pop_user'); setUser(null) }
+
+  if(!user) return <Login onLogin={u=>setUser(u)} />
+
   return (
-    <div className="min-h-screen flex flex-col relative task-background">
-      <div className="relative flex flex-col min-h-screen">
-        <Header />
-        <div className="flex flex-1">
-          <Sidebar />
-          <main className="flex flex-col flex-1 items-center justify-start gap-2 py-4">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="egg" element={<Egg />} />
-              <Route path="Task" element={<Task />} />
-            </Routes>
-          </main>
+    <div>
+      <Navbar user={user} cartCount={cart.reduce((s,i)=>s+i.qty,0)} onLogout={logout} onOpenCart={()=>setShowCart(true)} />
+      <div className="container">
+        <div className="layout">
+          <div>
+            <MenuList onAdd={addToCart} />
+          </div>
+          <div>
+            <CartPanel cart={cart} onInc={inc} onDec={dec} onRemove={removeItem} onCheckout={checkout} />
+          </div>
         </div>
-        <Footer />
+       
       </div>
+      
+      {showCart && <div style={{position:'fixed',right:12,top:80}}><CartPanel cart={cart} onInc={inc} onDec={dec} onRemove={removeItem} onCheckout={checkout} /></div>}
     </div>
-  );
+  )
 }

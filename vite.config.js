@@ -10,9 +10,9 @@ export default defineConfig({
     includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
     manifest:
     {
-      name: "My React PWA",
-      short_name: 'ReactPWA',
-      description: 'A React app with Vite + PWA',
+      name: "POP",
+      short_name: 'Pathiphan Borphun',
+      description: 'แอปช่วยคำนวณอาหาร',
       theme_color: '#ffffff',
       icons:
       [
